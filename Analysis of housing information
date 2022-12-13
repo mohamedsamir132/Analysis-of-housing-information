@@ -1,0 +1,167 @@
+[Problem 1] Obtaining a dataset
+
+import matplotlib.pyplot as plt
+import pandas as pd
+Houses = pd.read_csv('train.csv')
+Houses
+Houses.columns
+
+
+[Problem 2] Investigating the dataset itself
+
+The dataset contain a set of housing features that can be considered when someone wants to buy a house. And this features or characteristic can be used to determain the price of the house. Some of the feayures include:
+
+    The quality of heat and conditions
+    The Electrical systems
+    the Quality of the Kitchen
+    The number of fireplaces
+    The location of the Garage
+    The general shape of properety etc
+
+
+
+
+[Problem 3] Checking the data
+
+
+
+numerical_feats =Houses.dtypes[Houses.dtypes != "object"].index
+print("Number of Numerical features: ", len(numerical_feats))
+
+categorical_feats =Houses.dtypes[Houses.dtypes == "object"].index
+print("Number of Categorical features: ", len(categorical_feats))
+     
+print(Houses[numerical_feats].columns)
+print("*"*100)
+print(Houses[categorical_feats].columns)
+Houses[numerical_feats].head()
+Houses[categorical_feats].head()
+#Using : shape, info, head and describe to check the data
+
+Houses.shape #This wil desplay the number of rows and columns in the dataset
+Houses.head()
+Houses.info()
+Houses[['SalePrice']]
+Houses.describe()
+
+
+[Problem 4] Dealing with missing values
+
+pip install missingno
+import missingno as msno
+%matplotlib inline
+msno.matrix(Houses)
+msno.heatmap(Houses)
+
+
+
+To check the percentage of missing values.
+total = Houses.isnull().sum().sort_values(ascending=False)
+percent = (total/Houses.isnull().count()).sort_values(ascending=False)
+missing_data = pd.concat([total,percent], axis=1,keys=["Total","percent"])
+missing_data.head(20)
+
+
+
+To delete features (columns) that have 5 or more missing values.
+
+
+df = len(Houses.isnull()) 
+df
+print("No. of columns not containing null values")
+print(len(Houses.columns[Houses.notna().all()]))
+
+print("No. of columns containing null values")
+print(len(Houses.columns[Houses.isna().any()]))
+Houses = Houses.drop(missing_data[missing_data['Total'] > 5].index,1)
+Houses = Houses.drop(Houses.loc[Houses['Electrical'].isnull()].index)
+Houses.isnull().sum().max()
+     
+     
+[Problem 5] Researching terminology
+
+
+
+
+Skewness: Skewness, in basic terms, implies off-centre, so does in statistics, it means lack of symmetry. With the help of skewness, one can identify the shape of the distribution of data.
+
+Kurtosis: Kurtosis, on the other hand, refers to the pointedness of a peak in the distribution curve.
+
+    The main difference between skewness and kurtosis is that the former talks of the degree of symmetry, whereas the latter talks of the degree of peakedness, in the frequency distribution.
+
+
+
+[Problem 6] Confirming distribution
+
+import matplotlib.pyplot as plt
+import seaborn as sns, numpy as np
+for col in Houses[['SalePrice']]:
+    print('{:15}'.format(col), 
+          'Skewness: {:05.2f}'.format(Houses[col].skew()) , 
+          '   ' ,
+          'Kurtosis: {:06.2f}'.format(Houses[col].kur
+         )
+sns.set_theme(); np.random.seed(0)
+sns.displot(Houses['SalePrice'], kde=False, bins=10)
+sns.set_theme(); np.random.seed(0)
+target_var = Houses['SalePrice']
+sns.displot(target_var)
+plt.show()
+#log transformation
+
+log_data = np.log(Houses['SalePrice'])
+sns.set_theme(); np.random.seed(0)
+sns.displot(log_data);
+
+# skewness and kurtosis
+print("Skewness: %f" % log_data.skew())
+print("Kurtosis: %f" % log_data.kurt())
+
+# dropping old column
+#df_Houses.drop('SalePrice', axis= 1, inplace=True)
+from scipy.stats import kurtosis, skew
+
+target_log = target_var.apply(np.log)
+sns.displot(target_log, kde=False, bins=10)
+sns.displot(log_data, bins=10)
+
+[Problem 7] Confirming the correlation coefficient
+
+data_corr = Houses.corr()
+plt.figure(figsize=(16, 13))
+plt.title('Correlatiom matrix')
+sns.heatmap(data_corr, vmax=1, annot=False, cmap='BrBG')
+plt.show()
+corr_target = data_corr[['SalePrice']].sort_values(by=['SalePrice'], ascending=False)
+corr_target[1:11]
+target_corr_matrix = Houses[corr_target[1:11].index]
+display(target_corr_matrix)
+
+plt.subplots(figsize=(15,12))
+plt.title('Correlatiom matrix')
+sns.heatmap(target_corr_matrix.corr(), vmax=1, annot=True, cmap="YlGnBu")
+plt.show()
+
+
+
+The features of this dataset shows that there is much more influences on the price negotiations than the number of bedrooms or a white-picket
+
+    YearBuilt: Original construction date
+    1stFlrSF: First Floor square feet
+    FullBath: Full bathrooms above
+    TotRmsAbvGrd: Total rooms above grade (does not include bathrooms)
+    GarageArea: Size of garage in square feet
+    GarageCars: Size of garage in car capacity
+    TotalBsmtSF: Total square feet of basement
+    YearRemodAdd: Remodel date (same as construction date if no remodeling or additions)
+    OverallQual: Rates the overall material and finish of the house
+
+The 3 combinations with high Correlatiom coefficients with each other
+
+    GarageArea and GarageCar = 0.88
+    1stFlrSF and TotalBsmtSF = 0.82
+    GrLivArea andTotRmsAbvGrd = 0.83
+
+
+
+
